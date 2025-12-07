@@ -18,9 +18,9 @@ import lombok.ToString;
 @Table(name = "users")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @ToString(exclude = "passwordHash")
+@NoArgsConstructor
 public class User {
 
     @Id
