@@ -8,6 +8,8 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -27,8 +29,11 @@ public class Application {
     @Column(name = "app_name", nullable = false, length = 150)
     private String appName;
 
+    @Column(name = "description", columnDefinition = "text")
+    private String description;
+
     @ColumnDefault("now()")
     @Column(name = "created_at")
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
 }

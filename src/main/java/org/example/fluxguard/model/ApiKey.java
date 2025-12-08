@@ -10,6 +10,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "api_keys")
@@ -38,6 +39,6 @@ public class ApiKey {
 
     @ColumnDefault("now()")
     @Column(name = "created_at")
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
 }
