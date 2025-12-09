@@ -27,7 +27,6 @@ public class ApplicationController {
                                                 @RequestBody CreateAppDto appDto) throws Exception {
           String authHeader = request.getHeader("Authorization");
 
-          // Fix: Check if header is VALID (not invalid)
           if(authHeader != null && authHeader.startsWith("Bearer ")) {
                String jwtToken = authHeader.substring(7);
                String userEmail = jwtUtil.extractUsername(jwtToken);
@@ -35,7 +34,6 @@ public class ApplicationController {
                return new ResponseEntity<>(apiKey, HttpStatus.CREATED);
           }
 
-          // Return error if Authorization header is missing or invalid
           return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                   .body("Authorization header is missing or invalid");
      }

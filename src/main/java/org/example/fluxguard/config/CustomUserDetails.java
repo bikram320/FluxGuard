@@ -12,7 +12,6 @@ public record CustomUserDetails(User user) implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Single role USER; change as needed when you add roles
         return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 

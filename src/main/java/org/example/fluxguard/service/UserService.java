@@ -23,7 +23,7 @@ public class UserService {
     private final JwtUtil jwtUtil;
 
     public String registerUser(UserRegisterDto userRegisterDto) throws Exception {
-        // Implementation for user sign-up logic goes here
+
         if (userRepository.existsByEmail(userRegisterDto.getEmail())) {
             throw new IllegalArgumentException("Email already in use");
         }
