@@ -10,7 +10,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.net.InetAddress;
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "request_logs")
@@ -36,11 +36,11 @@ public class RequestLogs {
     @Column(name = "endpoint", nullable = false)
     private String endpoint;
 
-    @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    @Column(name = "method", nullable = false, length = 10)
+    private String method;
 
     @ColumnDefault("now()")
     @Column(name = "created_at")
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
 }

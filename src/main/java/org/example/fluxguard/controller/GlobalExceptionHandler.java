@@ -1,8 +1,6 @@
 package org.example.fluxguard.controller;
 
-import org.example.fluxguard.Exceptions.CredentialsNotMatchException;
-import org.example.fluxguard.Exceptions.DuplicateAppException;
-import org.example.fluxguard.Exceptions.UserNotFoundException;
+import org.example.fluxguard.Exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -39,5 +37,19 @@ public class GlobalExceptionHandler {
         var errors = new HashMap<String, String>();
         errors.put("message", e.getMessage());
         return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(DataNotFoundException.class)
+    public ResponseEntity<Map<String , String >> handleDataNotFoundException(DataNotFoundException e) {
+        var errors = new HashMap<String, String>();
+        errors.put("message", e.getMessage());
+        return ResponseEntity.status(404).body(errors);
+    }
+
+    @ExceptionHandler(IPBlockedException.class)
+    public ResponseEntity<Map<String , String >> handleIPBlockedException(IPBlockedException e) {
+        var errors = new HashMap<String, String>();
+        errors.put("message", e.getMessage());
+        return ResponseEntity.status(403).body(errors);
     }
 }

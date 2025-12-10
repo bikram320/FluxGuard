@@ -10,7 +10,6 @@ import org.example.fluxguard.model.User;
 import org.example.fluxguard.repository.ApiKeyRepository;
 import org.example.fluxguard.repository.ApplicationRepository;
 import org.example.fluxguard.repository.UserRepository;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
