@@ -24,7 +24,7 @@ public class RateLimitService {
         // increment the counter
         Long count = redisTemplate.opsForValue().increment(key);
 
-        // if key is new → assign TTL (60 seconds)
+        // if key is new -> assign TTL (60 seconds)
         if (count != null && count == 1) {
             redisTemplate.expire(key, Duration.ofSeconds(60));
         }
