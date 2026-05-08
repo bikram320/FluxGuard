@@ -31,4 +31,5 @@ public interface BlocksRepository extends JpaRepository<Blocks, Long> {
      // Used by BlockIPService.unblockIpForApiKey()
      void deleteAllByApiKeyAndIp(ApiKey apiKey, InetAddress ip);
 
+    void deleteExpiredBlocks(Instant now);
 }

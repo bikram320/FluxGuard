@@ -12,4 +12,5 @@ public class SecurityRequestDto {
     private String endpoint;
     private String method;
     private LocalDateTime createdAt;
+    private Integer responseStatus;
 }

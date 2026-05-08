@@ -17,44 +17,60 @@ public class SecurityService {
     private final BlockIPService blockIPService;
     private final RateLimitService rateLimitService;
     private final RequestLoggingService requestLoggingService;
+    private final SuspiciousBehaviorService suspiciousBehaviorService;
 
     /**
-     * Correct order of operations:
-     * 1. Validate an API key → fail fast, no logging for invalid keys
-     * 2. Check if IP is blocked → fail fast, no logging for already-blocked IPs
-     * 3. Check rate limit → if exceeded, auto-block then return 403
-     * 4. Log the request → only log requests we're actually processing
-     * 5. Allow
-
-     * Previously the log happened before the rate limit check, meaning every request
-     * from a rate-limited IP still polluted the request_logs table.
+     * PerformSecurityCheck is the main method that orchestrates all security checks
+     * for incoming API requests.
+     * It validates the API key, checks for IP blocks, enforces rate limits,
+     * detects suspicious behavior, and logs valid requests.
+     *
+     * @param dto SecurityRequestDto containing details of the incoming request
+     *            such as API key, IP address, endpoint, HTTP method, timestamp, and response status.
+     * @return SecurityResponseDto indicating whether the request is allowed or blocked, along with a message.
      */
-    public SecurityResponseDto performSecurityCheck(SecurityRequestDto securityRequestDto) {
 
-        String apiKey = securityRequestDto.getApiKey();
-        InetAddress ip = securityRequestDto.getIpAddress();
+    public SecurityResponseDto performSecurityCheck(SecurityRequestDto dto) {
 
-        // Step 1 — Validate API key
+        String apiKey = dto.getApiKey();
+        InetAddress ip = dto.getIpAddress();
+        String endpoint = dto.getEndpoint();
+        Integer status = dto.getResponseStatus();
+
+        // 1 — Validate API key
         if (!apiKeyValidationService.isValidApiKey(apiKey)) {
-            throw new DataNotFoundException("Invalid API Key");
+            throw new DataNotFoundException("Invalid API key");
         }
 
-        // Step 2 — Check if IP is already blocked
+        // 2 — Check if IP is already blocked
         if (blockIPService.isIpBlockedForApiKey(ip, apiKey)) {
             throw new IPBlockedException("IP address is blocked: " + ip.getHostAddress());
         }
 
-        // Step 3 — Check rate limit; if exceeded, auto-block the IP
+        // 3 — Rate limit check → auto-block if exceeded
         if (rateLimitService.isRateLimited(apiKey, ip)) {
-            String reason = "Auto-blocked: rate limit exceeded";
-            blockIPService.blockIp(ip, apiKey, reason);
-            return new SecurityResponseDto(false, "Rate limit exceeded. Your IP has been temporarily blocked.");
+            blockIPService.blockIp(ip, apiKey, "Auto-blocked: rate limit exceeded");
+            return new SecurityResponseDto(false, "Rate limit exceeded. IP temporarily blocked.");
         }
 
-        // Step 4 — Log the valid, allowed request
-        requestLoggingService.LogRequest(securityRequestDto);
+        // 4 — Endpoint hammering check → auto-block if exceeded
+        if (suspiciousBehaviorService.recordAndCheckEndpointAbuse(apiKey, ip, endpoint)) {
+            blockIPService.blockIp(ip, apiKey, "Auto-blocked: endpoint hammering on " + endpoint);
+            return new SecurityResponseDto(false, "Suspicious endpoint abuse detected. IP temporarily blocked.");
+        }
 
-        // Step 5 — Allow
+        // 5 — Error rate check (only when a 4xx status is reported)
+        if (status != null && status >= 400 && status < 500) {
+            if (suspiciousBehaviorService.recordAndCheckErrorRate(apiKey, ip)) {
+                blockIPService.blockIp(ip, apiKey, "Auto-blocked: excessive error rate (" + status + ")");
+                return new SecurityResponseDto(false, "Excessive error rate detected. IP temporarily blocked.");
+            }
+        }
+
+        // 6 — Log the request (only valid passing requests are logged)
+        requestLoggingService.LogRequest(dto);
+
+        // 7 — Allow
         return new SecurityResponseDto(true, "Request allowed");
     }
 }
