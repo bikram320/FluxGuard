@@ -44,7 +44,7 @@ public class DashboardService {
      * Lists all applications owned by the authenticated user,
      * each paired with its generated API key.
      */
-    public List<AppSummaryDto> getMyApplications(String userEmail) {
+    public List<AppSummaryDto> getMyApplications(String userEmail) throws UserNotFoundException {
         User user = resolveUser(userEmail);
         List<Application> apps = applicationRepository.findAllByUser(user);
 
@@ -71,7 +71,7 @@ public class DashboardService {
      * @param page   zero-based page number
      * @param size   page size (max 100 enforced below)
      */
-    public Page<RequestLogDto> getLogsForApp(String userEmail, Long appId, int page, int size) {
+    public Page<RequestLogDto> getLogsForApp(String userEmail, Long appId, int page, int size) throws UserNotFoundException {
         User user = resolveUser(userEmail);
         Application app = applicationRepository.findByIdAndUser(appId, user)
                 .orElseThrow(() -> new DataNotFoundException("Application not found or access denied"));
@@ -101,7 +101,7 @@ public class DashboardService {
      * Returns all currently active blocks across all applications owned by this user.
      * "Active" means: expiresAt is null OR expiresAt is in the future.
      */
-    public List<BlockedIpDto> getActiveBlocks(String userEmail) {
+    public List<BlockedIpDto> getActiveBlocks(String userEmail) throws UserNotFoundException {
         User user = resolveUser(userEmail);
         List<Application> apps = applicationRepository.findAllByUser(user);
         List<ApiKey> apiKeys = apps.stream()
@@ -130,7 +130,7 @@ public class DashboardService {
      * application. If null, removes all blocks for this IP across all of the user's apps.
      */
     @Transactional
-    public String unblockIp(String userEmail, String rawIp, String fgKey) {
+    public String unblockIp(String userEmail, String rawIp, String fgKey) throws UserNotFoundException {
         resolveUser(userEmail); // ensure user exists
 
         InetAddress ip;
@@ -151,7 +151,7 @@ public class DashboardService {
 
     // ── Helpers ─────────────────────────────────────────────────────────────
 
-    private User resolveUser(String email) {
+    private User resolveUser(String email) throws UserNotFoundException {
         User user = userRepository.findByEmail(email);
         if (user == null) throw new UserNotFoundException("User not found: " + email);
         return user;

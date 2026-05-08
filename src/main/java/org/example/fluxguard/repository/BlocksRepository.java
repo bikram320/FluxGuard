@@ -3,12 +3,18 @@ package org.example.fluxguard.repository;
 import org.example.fluxguard.model.ApiKey;
 import org.example.fluxguard.model.Blocks;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.net.InetAddress;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
+@Repository
 public interface BlocksRepository extends JpaRepository<Blocks, Long> {
      @Query("select (count(b) > 0) from Blocks b where b.ip = ?1")
      boolean existsByIpAddress(InetAddress ip_address);
@@ -31,5 +37,7 @@ public interface BlocksRepository extends JpaRepository<Blocks, Long> {
      // Used by BlockIPService.unblockIpForApiKey()
      void deleteAllByApiKeyAndIp(ApiKey apiKey, InetAddress ip);
 
-    void deleteExpiredBlocks(Instant now);
+     @Modifying
+     @Query("DELETE FROM Blocks b WHERE b.expiresAt IS NOT NULL AND b.expiresAt < :now")
+     void deleteExpiredBlocks(@Param("now") Instant now);
 }

@@ -3,6 +3,7 @@ package org.example.fluxguard.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.example.fluxguard.Exceptions.UserNotFoundException;
 import org.example.fluxguard.dtos.AppSummaryDto;
 import org.example.fluxguard.dtos.BlockedIpDto;
 import org.example.fluxguard.dtos.RequestLogDto;
@@ -36,7 +37,7 @@ public class DashboardController {
      * including each app's generated API key.
      */
     @GetMapping("/apps")
-    public ResponseEntity<List<AppSummaryDto>> getMyApps(HttpServletRequest request) {
+    public ResponseEntity<List<AppSummaryDto>> getMyApps(HttpServletRequest request) throws UserNotFoundException {
         String email = extractEmail(request);
         return ResponseEntity.ok(dashboardService.getMyApplications(email));
     }
@@ -53,7 +54,7 @@ public class DashboardController {
             HttpServletRequest request,
             @PathVariable Long appId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size) throws UserNotFoundException {
 
         String email = extractEmail(request);
         return ResponseEntity.ok(dashboardService.getLogsForApp(email, appId, page, size));
@@ -66,7 +67,7 @@ public class DashboardController {
      * Returns all active IP blocks across all of the user's applications.
      */
     @GetMapping("/blocks")
-    public ResponseEntity<List<BlockedIpDto>> getBlocks(HttpServletRequest request) {
+    public ResponseEntity<List<BlockedIpDto>> getBlocks(HttpServletRequest request) throws UserNotFoundException {
         String email = extractEmail(request);
         return ResponseEntity.ok(dashboardService.getActiveBlocks(email));
     }
@@ -79,7 +80,7 @@ public class DashboardController {
     @PostMapping("/blocks/unblock")
     public ResponseEntity<String> unblock(
             HttpServletRequest request,
-            @Valid @RequestBody UnblockRequestDto dto) {
+            @Valid @RequestBody UnblockRequestDto dto) throws UserNotFoundException {
 
         String email = extractEmail(request);
         String message = dashboardService.unblockIp(email, dto.getIp(), dto.getApiKey());

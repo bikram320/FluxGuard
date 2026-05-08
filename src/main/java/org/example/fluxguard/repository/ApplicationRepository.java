@@ -6,10 +6,12 @@ import org.example.fluxguard.model.Application;
 import org.example.fluxguard.model.User;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface ApplicationRepository extends JpaRepository<Application, Long> {
     boolean existsByAppNameAndUser(
             @NotBlank(message = "App name is required")
