@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Layout from "./components/Layout";
+import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AppsPage from "./pages/AppsPage";
@@ -13,8 +14,11 @@ export default function App() {
     return (
         <BrowserRouter>
             <Routes>
+                {/* Landing */}
+                <Route path="/" element={<LandingPage />} />
+
                 {/* Public */}
-                <Route path="/login" element={<LoginPage />} />
+                <Route path="/login"    element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
 
                 {/* Protected */}
@@ -50,7 +54,6 @@ export default function App() {
                         </ProtectedRoute>
                     }
                 />
-
                 <Route
                     path="/docs"
                     element={
@@ -61,7 +64,7 @@ export default function App() {
                 />
 
                 {/* Fallback */}
-                <Route path="*" element={<Navigate to="/apps" replace />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </BrowserRouter>
     );
