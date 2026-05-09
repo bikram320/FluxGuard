@@ -1,50 +1,69 @@
 import { useState, useRef } from "react";
-import { Zap, Send, ShieldCheck, ShieldOff, Loader } from "lucide-react";
+import { Zap, Send, ShieldCheck, ShieldOff, Loader, AlertTriangle } from "lucide-react";
 import api from "../lib/api";
 
-// Fixed IP per session so repeated requests from same IP trigger rate-limit
 function useSessionIp() {
     const ref = useRef(`203.0.113.${Math.floor(Math.random() * 254) + 1}`);
     return ref.current;
 }
 
+const UA_PRESETS = [
+    { label: "Chrome (normal)",  value: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36" },
+    { label: "sqlmap (scanner)", value: "sqlmap/1.7.8#stable (https://sqlmap.org)" },
+    { label: "Nikto (scanner)",  value: "Mozilla/5.00 (Nikto/2.1.6) (Evasions:None) (Test:Port Check)" },
+    { label: "Empty UA (bot)",   value: "" },
+    { label: "HeadlessChrome",   value: "Mozilla/5.0 HeadlessChrome/120.0.0.0 Safari/537.36" },
+];
+
+const QS_PRESETS = [
+    { label: "Clean",             value: "" },
+    { label: "SQLi — OR 1=1",    value: "id=1' OR '1'='1" },
+    { label: "SQLi — UNION",     value: "q=1 UNION SELECT username,password FROM users" },
+    { label: "XSS",              value: "search=<script>alert(1)</script>" },
+    { label: "Path traversal",   value: "file=../../etc/passwd" },
+    { label: "Command inject",   value: "cmd=ls;cat /etc/passwd" },
+];
+
 export default function DemoPage() {
-    const [apiKey, setApiKey]     = useState("");
-    const [endpoint, setEndpoint] = useState("/api/test");
-    const [method, setMethod]     = useState("GET");
-    const [results, setResults]   = useState([]);
-    const [loading, setLoading]   = useState(false);
+    const [apiKey, setApiKey]       = useState("");
+    const [endpoint, setEndpoint]   = useState("/api/test");
+    const [method, setMethod]       = useState("GET");
+    const [userAgent, setUserAgent] = useState(UA_PRESETS[0].value);
+    const [queryStr, setQueryStr]   = useState("");
+    const [results, setResults]     = useState([]);
+    const [loading, setLoading]     = useState(false);
+    const [spamming, setSpamming]   = useState(false);
     const [spamCount, setSpamCount] = useState(0);
-    const [spamming, setSpamming] = useState(false);
     const sessionIp = useSessionIp();
+
+    const buildPayload = () => ({
+        apiKey,
+        ipAddress:      sessionIp,
+        endpoint,
+        method,
+        createdAt:      new Date().toISOString(),
+        responseStatus: 200,
+        userAgent,
+        queryString:    queryStr || null,
+    });
 
     const sendRequest = async (silent = false) => {
         if (!apiKey) return;
         if (!silent) setLoading(true);
-
-        const payload = {
-            apiKey,
-            ipAddress: sessionIp,   // same IP every time in this session
-            endpoint,
-            method,
-            createdAt: new Date().toISOString(),
-            responseStatus: 200,
-        };
-
         try {
-            const res = await api.post("/api/fluxguard/security/check", payload);
-            addResult(true, res.data.message, sessionIp);
+            const res = await api.post("/api/fluxguard/security/check", buildPayload());
+            addResult(true, res.data.message);
         } catch (err) {
-            addResult(false, err.response?.data?.message || "Request blocked", sessionIp);
+            addResult(false, err.response?.data?.message || "Request blocked");
         } finally {
             if (!silent) setLoading(false);
         }
     };
 
-    const addResult = (allowed, message, ip) => {
+    const addResult = (allowed, message) => {
         setResults((prev) => [{
             id: Date.now() + Math.random(),
-            allowed, message, ip,
+            allowed, message,
             time: new Date().toLocaleTimeString(),
         }, ...prev].slice(0, 30));
     };
@@ -71,7 +90,7 @@ export default function DemoPage() {
                     <Zap size={18} className="text-accent" /> Live Demo
                 </h1>
                 <p className="text-subtle text-xs mt-1">
-                    All requests use the same IP (<span className="font-mono text-accent">{sessionIp}</span>) so spam triggers rate-limiting.
+                    Session IP: <span className="font-mono text-accent">{sessionIp}</span> — fixed per session so spam triggers rate-limiting.
                 </p>
             </div>
 
@@ -81,6 +100,7 @@ export default function DemoPage() {
                     <div className="bg-surface border border-border rounded-lg p-5">
                         <h2 className="text-xs text-subtle uppercase tracking-wider mb-4">Request Config</h2>
                         <div className="space-y-3">
+
                             <div>
                                 <label className="text-xs text-subtle block mb-1.5">API Key</label>
                                 <input
@@ -89,8 +109,8 @@ export default function DemoPage() {
                                     className="w-full bg-bg border border-border rounded px-3 py-2 text-xs text-accent font-mono placeholder-subtle focus:outline-none focus:border-accent/50 transition-colors"
                                     placeholder="FG-xxxxxxxxx"
                                 />
-                                <p className="text-[10px] text-subtle mt-1">Paste an API key from your apps</p>
                             </div>
+
                             <div>
                                 <label className="text-xs text-subtle block mb-1.5">Endpoint</label>
                                 <input
@@ -99,6 +119,7 @@ export default function DemoPage() {
                                     className="w-full bg-bg border border-border rounded px-3 py-2 text-xs text-text font-mono placeholder-subtle focus:outline-none focus:border-accent/50 transition-colors"
                                 />
                             </div>
+
                             <div>
                                 <label className="text-xs text-subtle block mb-1.5">Method</label>
                                 <select
@@ -108,6 +129,45 @@ export default function DemoPage() {
                                 >
                                     {["GET","POST","PUT","DELETE","PATCH"].map((m) => <option key={m}>{m}</option>)}
                                 </select>
+                            </div>
+
+                            {/* User-Agent */}
+                            <div>
+                                <label className="text-xs text-subtle block mb-1.5">
+                                    User-Agent <span className="text-accent/60">(UA inspection)</span>
+                                </label>
+                                <select
+                                    value={userAgent}
+                                    onChange={(e) => setUserAgent(e.target.value)}
+                                    className="w-full bg-bg border border-border rounded px-3 py-2 text-xs text-text font-mono focus:outline-none focus:border-accent/50 transition-colors mb-1.5"
+                                >
+                                    {UA_PRESETS.map((p) => <option key={p.label} value={p.value}>{p.label}</option>)}
+                                </select>
+                                {(userAgent.toLowerCase().includes("sqlmap") ||
+                                    userAgent.toLowerCase().includes("nikto") ||
+                                    userAgent === "") && (
+                                    <p className="text-[10px] text-danger flex items-center gap-1">
+                                        <AlertTriangle size={10} /> This UA will be blocked
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Query string */}
+                            <div>
+                                <label className="text-xs text-subtle block mb-1.5">
+                                    Query String <span className="text-accent/60">(injection detection)</span>
+                                </label>
+                                <select
+                                    onChange={(e) => setQueryStr(e.target.value)}
+                                    className="w-full bg-bg border border-border rounded px-3 py-2 text-xs text-text font-mono focus:outline-none focus:border-accent/50 transition-colors mb-1.5"
+                                >
+                                    {QS_PRESETS.map((p) => <option key={p.label} value={p.value}>{p.label}</option>)}
+                                </select>
+                                {queryStr && (
+                                    <p className="text-[10px] text-warning flex items-center gap-1">
+                                        <AlertTriangle size={10} /> Sending: <span className="font-mono truncate">{queryStr}</span>
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -155,7 +215,7 @@ export default function DemoPage() {
                             <button onClick={() => setResults([])} className="text-[10px] text-subtle hover:text-text">Clear</button>
                         )}
                     </div>
-                    <div className="flex-1 overflow-auto max-h-96">
+                    <div className="flex-1 overflow-auto max-h-[600px]">
                         {results.length === 0 ? (
                             <div className="flex items-center justify-center h-32 text-subtle text-xs">
                                 Send a request to see results
@@ -170,7 +230,6 @@ export default function DemoPage() {
                                         {r.allowed ? "ALLOWED" : "BLOCKED"}
                                     </p>
                                     <p className="text-[10px] text-subtle truncate">{r.message}</p>
-                                    <p className="text-[10px] text-subtle/60 font-mono">{r.ip}</p>
                                 </div>
                                 <span className="text-[10px] text-subtle shrink-0">{r.time}</span>
                             </div>

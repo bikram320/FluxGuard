@@ -7,7 +7,7 @@ import AppsPage from "./pages/AppsPage";
 import LogsPage from "./pages/LogsPage";
 import BlocksPage from "./pages/BlocksPage";
 import DemoPage from "./pages/DemoPage";
-// import DocsPage from "./pages/DocsPage";
+import DocsPage from "./pages/DocsPage";
 
 export default function App() {
     return (
@@ -51,14 +51,14 @@ export default function App() {
                     }
                 />
 
-                {/*<Route*/}
-                {/*    path="/docs"*/}
-                {/*    element={*/}
-                {/*        <ProtectedRoute>*/}
-                {/*            <Layout><DocsPage /></Layout>*/}
-                {/*        </ProtectedRoute>*/}
-                {/*    }*/}
-                {/*/>*/}
+                <Route
+                    path="/docs"
+                    element={
+                        <ProtectedRoute>
+                            <Layout><DocsPage /></Layout>
+                        </ProtectedRoute>
+                    }
+                />
 
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="/apps" replace />} />
