@@ -38,4 +38,3 @@ out/
 
 ### Application Credentials###
 .env
-src/main/resources/application.properties
