@@ -1,74 +1,96 @@
-# 🚀 FluxGuard — Intelligent API Protection Service
+# FluxGuard — API Protection Layer
 
-FluxGuard is a lightweight service designed to protect backend applications from abusive traffic.  
-It monitors incoming requests, analyzes behavior, and automatically blocks suspicious activity — helping developers secure their APIs effortlessly.
+> Stop attacks before they reach your API. 9-layer security middleware — one endpoint, zero friction, under 5ms.
 
----
-
-## 📘 Overview
-
-FluxGuard sits between your application and the outside world.  
-Developers integrate a generated API key, and every request passes through FluxGuard’s security layer before reaching their own backend.
-
-FluxGuard observes patterns such as:
-
-- Too many requests from the same IP
-- Irregular or bot-like behavior
-- High error rates
-- Repeated access to sensitive endpoints
-
-If anything looks harmful, the system blocks the IP automatically and prevents further abuse.
+🌐 **[flux-guard.vercel.app](https://flux-guard.vercel.app)**
 
 ---
 
-## ⚙️ How It Works
+## How It Works
 
-1. **User Registers in FluxGuard**  
-   A developer creates an account on the FluxGuard dashboard.
+Your backend calls FluxGuard's `/check` endpoint **before** processing any request. FluxGuard inspects it across 9 security layers and returns a simple decision:
 
-2. **Developer Creates an Application**  
-   Each application they want to protect is added inside FluxGuard (e.g., Portfolio API, E-commerce Backend).
+```json
+{ "status": true }   // ✅ allow
+{ "status": false }  // ❌ block — return 403
+```
 
-3. **FluxGuard Generates an API Key**  
-   This key uniquely identifies the developer’s application.
-
-4. **Developer Integrates the API Key**  
-   The developer adds the API key to their backend or frontend.  
-   Every request sent through FluxGuard includes this key so the system can identify the application.
-
-5. **Request Arrives at FluxGuard**  
-   FluxGuard collects key information such as:
-   - Requesting IP
-   - Targeted endpoint
-   - Request behavior pattern
-   - Whether the IP was previously flagged
-
-6. **FluxGuard Security Engine Analyzes the Request**  
-   The system checks for:
-   - Rate limit violations
-   - Repeated failed attempts
-   - Suspicious behavior sequences
-   - Blacklisted or previously blocked IPs
-   - Other unusual activity
-
-7. **Safe Requests Pass Through**  
-   Normal requests are forwarded to the developer’s backend instantly.
-
-8. **Harmful Requests Are Blocked**  
-   If the request is considered harmful:
-   - The IP is automatically blocked
-   - The request is stopped
-   - Future requests from the same IP are denied
-
-9. **Developer Manages Security From Dashboard**  
-   The dashboard allows developers to:
-   - View blocked IPs
-   - Unblock IPs
-   - Review suspicious activity logs
+That's the entire integration.
 
 ---
 
-## 🎯 Goal of FluxGuard
+## 9 Security Layers
 
-FluxGuard aims to provide smart, automatic protection for any API.  
-It eliminates the need for developers to manually implement rate limiting, IP tracking, or threat detection — offering an easy, plug-and-play security layer that saves time and prevents abuse.
+| # | Layer | Trigger |
+|---|-------|---------|
+| 01 | API Key Validation | Invalid or missing key |
+| 02 | IP Block Check | Previously blocked IP |
+| 03 | User-Agent Inspection | sqlmap, nikto, nmap, headless browsers, 20+ signatures |
+| 04 | Payload Inspection | SQLi, XSS, path traversal, command injection |
+| 05 | Geo-Blocking | Configured country ISO codes |
+| 06 | Strict Rate Limit | Auth endpoints — 10 req/min hard cap |
+| 07 | Global Rate Limit | 60 req/min per IP — excess triggers auto-block |
+| 08 | Error Rate Detection | Too many 4xx in 5 min → auto-block |
+| 09 | Endpoint Hammering | Same endpoint hit excessively in 1 min |
+
+Any triggered layer **instantly** blocks the IP. Manage blocked IPs from the dashboard.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React + Vite, Tailwind CSS, Zustand |
+| Backend | Java Spring Boot |
+| Database | PostgreSQL via Supabase |
+| Cache / Rate Limiting | Redis via Upstash |
+| Frontend Deploy | Vercel |
+| Backend Deploy | Render (Docker) |
+
+---
+
+## Quick Start
+
+```bash
+# 1. Register at flux-guard.vercel.app
+# 2. Create an app → copy your API key
+# 3. Call the check endpoint before your protected routes
+# 4. Allow or block based on the response
+```
+
+```http
+POST https://your-backend/api/fluxguard/security/check
+
+{
+  "apiKey":      "FG-xxxx-xxxx",
+  "ipAddress":   "203.0.113.42",
+  "endpoint":    "/api/users",
+  "method":      "GET",
+  "createdAt":   "2025-01-15T10:30:00",
+  "userAgent":   "Mozilla/5.0 ...",
+  "queryString": "?id=1"
+}
+```
+
+---
+
+## Self-Hosting (Docker)
+
+A `Dockerfile` is included for the backend. Set these environment variables on your host:
+
+```env
+DATABASE_URL=your_supabase_postgres_url
+REDIS_URL=your_upstash_redis_url
+JWT_SECRET=your_secret
+```
+
+Then deploy to any container platform (Render, Railway, Fly.io, etc.).
+
+---
+
+## 📖 Full Docs & Integration Examples
+
+Node.js, Spring Boot, and Python integration examples, full API reference, and live demo at:
+
+**[flux-guard.vercel.app/docs](https://flux-guard.vercel.app/docs)**
