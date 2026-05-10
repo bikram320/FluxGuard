@@ -48,12 +48,12 @@ export default function RegisterPage() {
     );
 
     return (
-        <div className="min-h-screen bg-bg grid-bg flex items-center justify-center px-4">
+        <div className="min-h-screen bg-bg grid-bg flex items-center justify-center px-4 py-10">
             <div className="w-full max-w-sm animate-slide-up">
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded border border-accent/30 bg-accent/5 mb-4 glow">
+                    <Link to="/" className="inline-flex items-center justify-center w-12 h-12 rounded border border-accent/30 bg-accent/5 mb-4 hover:bg-accent/10 transition-colors">
                         <Shield size={20} className="text-accent" />
-                    </div>
+                    </Link>
                     <h1 className="font-display text-2xl font-800 text-text">FluxGuard</h1>
                     <p className="text-subtle text-xs mt-1">Create your account</p>
                 </div>
@@ -77,7 +77,7 @@ export default function RegisterPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowPw(!showPw)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-subtle hover:text-text"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-subtle hover:text-text p-1"
                             >
                                 {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
                             </button>
@@ -98,7 +98,7 @@ export default function RegisterPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowConfirmPw(!showConfirmPw)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-subtle hover:text-text"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-subtle hover:text-text p-1"
                             >
                                 {showConfirmPw ? <EyeOff size={14} /> : <Eye size={14} />}
                             </button>

@@ -1,6 +1,6 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Shield, ArrowRight } from "lucide-react";
-
+import { Shield, ArrowRight, Menu, X } from "lucide-react";
 
 const layers = [
     { num: "01", name: "API Key Validation",   color: "text-accent",   desc: "Rejects requests with invalid or missing API keys instantly." },
@@ -15,92 +15,83 @@ const layers = [
 ];
 
 const steps = [
-    {
-        n: "1",
-        title: "Create an app",
-        desc: "Register, go to Applications, and create a new app. Copy your generated API key.",
-    },
-    {
-        n: "2",
-        title: "Call the check endpoint",
-        desc: (
-            <>
-                Before every protected route, POST to{" "}
-                <span className="font-mono text-accent text-[11px]">/api/fluxguard/security/check</span>{" "}
-                with the caller's IP and your API key.
-            </>
-        ),
-    },
-    {
-        n: "3",
-        title: "Handle the response",
-        desc: (
-            <>
-                <span className="font-mono text-accent">status: true</span> → allow.{" "}
-                <span className="font-mono text-danger">status: false</span> → return 403. That's it.
-            </>
-        ),
-    },
+    { n: "1", title: "Create an app", desc: "Register, go to Applications, and create a new app. Copy your generated API key." },
+    { n: "2", title: "Call the check endpoint", desc: (<>Before every protected route, POST to <span className="font-mono text-accent text-[11px]">/api/fluxguard/security/check</span> with the caller's IP and your API key.</>) },
+    { n: "3", title: "Handle the response", desc: (<><span className="font-mono text-accent">status: true</span> → allow. <span className="font-mono text-danger">status: false</span> → return 403. That's it.</>) },
 ];
 
-const scrollTo = (id) => {
+function scrollTo(id) {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-};
+}
 
 export default function LandingPage() {
+    const [menuOpen, setMenuOpen] = useState(false);
+
     return (
-        <div className="min-h-screen bg-bg text-text font-display" style={{ scrollBehavior: "smooth" }}>
+        <div className="min-h-screen bg-bg text-text font-display">
 
             {/* Nav */}
-            <nav className="sticky top-0 z-50 flex items-center justify-between px-10 py-5 border-b border-border bg-bg/90 backdrop-blur-sm">
-                <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 border border-accent/30 bg-accent/5 rounded-md flex items-center justify-center">
-                        <Shield size={16} className="text-accent" />
+            <nav className="sticky top-0 z-50 border-b border-border bg-bg/90 backdrop-blur-sm">
+                <div className="flex items-center justify-between px-5 md:px-10 py-4 md:py-5">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 border border-accent/30 bg-accent/5 rounded-md flex items-center justify-center">
+                            <Shield size={16} className="text-accent" />
+                        </div>
+                        <span className="font-display font-700 text-sm tracking-widest uppercase">FluxGuard</span>
                     </div>
-                    <span className="font-display font-700 text-sm tracking-widest uppercase">FluxGuard</span>
+
+                    {/* Desktop links */}
+                    <div className="hidden md:flex items-center gap-6">
+                        <button onClick={() => scrollTo("features")} className="font-mono text-[12px] text-subtle hover:text-text transition-colors">Features</button>
+                        <button onClick={() => scrollTo("how")}      className="font-mono text-[12px] text-subtle hover:text-text transition-colors">How it works</button>
+                        <Link to="/docs"  className="font-mono text-[12px] text-subtle hover:text-text transition-colors">Docs</Link>
+                        <Link to="/login" className="font-mono text-[12px] font-600 bg-accent text-bg px-4 py-2 rounded-md hover:bg-accent-dim transition-colors">Sign in →</Link>
+                    </div>
+
+                    {/* Mobile hamburger */}
+                    <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-subtle hover:text-text transition-colors p-1">
+                        {menuOpen ? <X size={20} /> : <Menu size={20} />}
+                    </button>
                 </div>
-                <div className="flex items-center gap-6">
-                    <button onClick={() => scrollTo("features")} className="font-mono text-[12px] text-subtle hover:text-text transition-colors">Features</button>
-                    <button onClick={() => scrollTo("how")}      className="font-mono text-[12px] text-subtle hover:text-text transition-colors">How it works</button>
-                    <Link to="/docs"    className="font-mono text-[12px] text-subtle hover:text-text transition-colors">Docs</Link>
-                    <Link
-                        to="/login"
-                        className="font-mono text-[12px] font-600 bg-accent text-bg px-4 py-2 rounded-md hover:bg-accent-dim transition-colors"
-                    >
-                        Sign in →
-                    </Link>
-                </div>
+
+                {/* Mobile dropdown */}
+                {menuOpen && (
+                    <div className="md:hidden border-t border-border bg-bg px-5 py-4 space-y-1 animate-slide-up">
+                        <button onClick={() => { scrollTo("features"); setMenuOpen(false); }} className="block w-full text-left font-mono text-sm text-subtle hover:text-text py-2.5 transition-colors">Features</button>
+                        <button onClick={() => { scrollTo("how"); setMenuOpen(false); }}      className="block w-full text-left font-mono text-sm text-subtle hover:text-text py-2.5 transition-colors">How it works</button>
+                        <Link to="/docs"  onClick={() => setMenuOpen(false)} className="block font-mono text-sm text-subtle hover:text-text py-2.5 transition-colors">Docs</Link>
+                        <div className="pt-2">
+                            <Link to="/login" onClick={() => setMenuOpen(false)} className="block font-mono text-sm font-600 bg-accent text-bg px-4 py-2.5 rounded-md text-center hover:bg-accent-dim transition-colors">Sign in →</Link>
+                        </div>
+                    </div>
+                )}
             </nav>
 
             {/* Hero */}
             <div className="grid-bg">
-                <div className="max-w-3xl mx-auto px-10 pt-24 pb-20 text-center animate-slide-up">
-                    <div className="inline-flex items-center gap-2 bg-accent/5 border border-accent/20 rounded-full px-3.5 py-1.5 mb-8">
+                <div className="max-w-3xl mx-auto px-5 md:px-10 pt-16 md:pt-24 pb-14 md:pb-20 text-center animate-slide-up">
+                    <div className="inline-flex items-center gap-2 bg-accent/5 border border-accent/20 rounded-full px-3.5 py-1.5 mb-6 md:mb-8">
                         <span className="w-1.5 h-1.5 rounded-full bg-accent" />
                         <span className="font-mono text-[11px] text-accent">9-layer API security middleware</span>
                     </div>
-
-                    <h1 className="font-display font-800 text-5xl leading-[1.1] mb-5">
-                        Stop attacks<br />before they<br />
-                        <span className="text-accent">reach your API</span>
+                    <h1 className="font-display font-800 text-4xl md:text-5xl leading-[1.1] mb-4 md:mb-5">
+                        Stop attacks<br />before they<br /><span className="text-accent">reach your API</span>
                     </h1>
-                    <p className="text-subtle text-[15px] leading-relaxed max-w-lg mx-auto mb-10">
-                        FluxGuard sits in front of your backend and blocks threats in real time — rate limiting,
-                        IP blocking, scanner detection, injection prevention, and more. One endpoint. Zero friction.
+                    <p className="text-subtle text-sm md:text-[15px] leading-relaxed max-w-lg mx-auto mb-8 md:mb-10">
+                        FluxGuard sits in front of your backend and blocks threats in real time — rate limiting, IP blocking, scanner detection, injection prevention, and more. One endpoint. Zero friction.
                     </p>
-
-                    <div className="flex gap-3 justify-center flex-wrap">
-                        <Link to="/register" className="font-mono text-[13px] font-600 bg-accent text-bg px-6 py-3 rounded-md hover:bg-accent-dim transition-colors inline-flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                        <Link to="/register" className="font-mono text-[13px] font-600 bg-accent text-bg px-6 py-3 rounded-md hover:bg-accent-dim transition-colors inline-flex items-center justify-center gap-2">
                             Get started free <ArrowRight size={14} />
                         </Link>
-                        <Link to="/docs" className="font-mono text-[13px] font-600 border border-border text-text px-6 py-3 rounded-md hover:border-subtle transition-colors inline-flex items-center gap-2">
+                        <Link to="/docs" className="font-mono text-[13px] font-600 border border-border text-text px-6 py-3 rounded-md hover:border-subtle transition-colors inline-flex items-center justify-center gap-2">
                             View docs
                         </Link>
                     </div>
                 </div>
 
                 {/* Code preview */}
-                <div className="max-w-xl mx-auto px-10 pb-20">
+                <div className="max-w-xl mx-auto px-5 md:px-10 pb-14 md:pb-20">
                     <div className="bg-surface border border-border rounded-xl overflow-hidden text-left">
                         <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
                             <span className="w-2.5 h-2.5 rounded-full bg-danger" />
@@ -108,7 +99,7 @@ export default function LandingPage() {
                             <span className="w-2.5 h-2.5 rounded-full bg-accent" />
                             <span className="font-mono text-[10px] text-subtle ml-auto uppercase tracking-widest">security check response</span>
                         </div>
-                        <div className="p-5 font-mono text-[12px] leading-[1.8]">
+                        <div className="p-4 md:p-5 font-mono text-[11px] md:text-[12px] leading-[1.8] overflow-x-auto">
                             <span className="text-border">{"// POST /api/fluxguard/security/check"}</span><br />
                             <span className="text-text">{"{"}</span><br />
                             <span className="text-subtle">&nbsp;&nbsp;"apiKey"</span><span className="text-text">: </span><span className="text-accent">"FG-1234-AbCd"</span><span className="text-text">,</span><br />
@@ -126,17 +117,16 @@ export default function LandingPage() {
                 </div>
             </div>
 
-            <div className="h-px bg-border mx-10" />
+            <div className="h-px bg-border mx-5 md:mx-10" />
 
             {/* Features */}
-            <section id="features" className="max-w-5xl mx-auto px-10 py-20">
+            <section id="features" className="max-w-5xl mx-auto px-5 md:px-10 py-14 md:py-20">
                 <p className="font-mono text-[10px] text-accent uppercase tracking-[0.15em] mb-3">Protection layers</p>
-                <h2 className="font-display font-800 text-3xl mb-3">9 layers of security,<br />zero config required</h2>
-                <p className="text-subtle text-sm leading-relaxed max-w-md mb-10">
+                <h2 className="font-display font-800 text-2xl md:text-3xl mb-3">9 layers of security,<br />zero config required</h2>
+                <p className="text-subtle text-sm leading-relaxed max-w-md mb-8 md:mb-10">
                     Every request is checked against all 9 layers simultaneously. Any triggered check auto-blocks the IP immediately.
                 </p>
-
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {layers.map(({ num, name, color, desc }) => (
                         <div key={num} className="bg-surface border border-border rounded-lg p-4">
                             <p className="font-mono text-[10px] text-border font-700 mb-2">{num}</p>
@@ -147,22 +137,19 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <div className="h-px bg-border mx-10" />
+            <div className="h-px bg-border mx-5 md:mx-10" />
 
             {/* How it works */}
-            <section id="how" className="max-w-5xl mx-auto px-10 py-20">
+            <section id="how" className="max-w-5xl mx-auto px-5 md:px-10 py-14 md:py-20">
                 <p className="font-mono text-[10px] text-accent uppercase tracking-[0.15em] mb-3">How it works</p>
-                <h2 className="font-display font-800 text-3xl mb-3">Integrate in minutes,<br />protect forever</h2>
-                <p className="text-subtle text-sm leading-relaxed max-w-md mb-10">
+                <h2 className="font-display font-800 text-2xl md:text-3xl mb-3">Integrate in minutes,<br />protect forever</h2>
+                <p className="text-subtle text-sm leading-relaxed max-w-md mb-8 md:mb-10">
                     FluxGuard works as a middleware layer — call one endpoint before your protected routes and let us handle the rest.
                 </p>
-
-                <div className="grid grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5">
                     {steps.map(({ n, title, desc }) => (
                         <div key={n} className="bg-surface border border-border rounded-lg p-5">
-                            <div className="w-7 h-7 rounded-full bg-accent/10 border border-accent/30 flex items-center justify-center font-mono text-[11px] font-700 text-accent mb-3">
-                                {n}
-                            </div>
+                            <div className="w-7 h-7 rounded-full bg-accent/10 border border-accent/30 flex items-center justify-center font-mono text-[11px] font-700 text-accent mb-3">{n}</div>
                             <p className="text-[13px] font-700 text-text mb-1.5">{title}</p>
                             <p className="text-[12px] text-subtle leading-relaxed">{desc}</p>
                         </div>
@@ -170,24 +157,22 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <div className="h-px bg-border mx-10" />
+            <div className="h-px bg-border mx-5 md:mx-10" />
 
             {/* CTA */}
-            <section className="px-10 py-20 text-center">
-                <div className="bg-surface border border-accent/20 rounded-xl px-10 py-16 max-w-xl mx-auto">
+            <section className="px-5 md:px-10 py-14 md:py-20 text-center">
+                <div className="bg-surface border border-accent/20 rounded-xl px-6 md:px-10 py-12 md:py-16 max-w-xl mx-auto">
                     <div className="inline-flex items-center gap-2 bg-accent/5 border border-accent/20 rounded-full px-3.5 py-1.5 mb-6">
                         <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse2" />
                         <span className="font-mono text-[11px] text-accent">Free to get started</span>
                     </div>
-                    <h2 className="font-display font-800 text-3xl mb-3">Your API deserves<br />real protection</h2>
-                    <p className="text-subtle text-sm mb-8">
-                        Join developers who trust FluxGuard to block attacks before they reach their backend.
-                    </p>
-                    <div className="flex gap-3 justify-center flex-wrap">
-                        <Link to="/register" className="font-mono text-[13px] font-600 bg-accent text-bg px-6 py-3 rounded-md hover:bg-accent-dim transition-colors inline-flex items-center gap-2">
+                    <h2 className="font-display font-800 text-2xl md:text-3xl mb-3">Your API deserves<br />real protection</h2>
+                    <p className="text-subtle text-sm mb-8">Join developers who trust FluxGuard to block attacks before they reach their backend.</p>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                        <Link to="/register" className="font-mono text-[13px] font-600 bg-accent text-bg px-6 py-3 rounded-md hover:bg-accent-dim transition-colors inline-flex items-center justify-center gap-2">
                             Create free account <ArrowRight size={14} />
                         </Link>
-                        <Link to="/docs" className="font-mono text-[13px] font-600 border border-border text-text px-6 py-3 rounded-md hover:border-subtle transition-colors">
+                        <Link to="/docs" className="font-mono text-[13px] font-600 border border-border text-text px-6 py-3 rounded-md hover:border-subtle transition-colors inline-flex items-center justify-center">
                             Read the docs
                         </Link>
                     </div>
@@ -195,9 +180,13 @@ export default function LandingPage() {
             </section>
 
             {/* Footer */}
-            <footer className="px-10 py-6 border-t border-border flex items-center justify-between">
+            <footer className="px-5 md:px-10 py-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
                 <span className="font-mono text-[11px] text-subtle uppercase tracking-[0.1em]">FluxGuard — API Protection Layer</span>
-                <span className="font-mono text-[11px] text-border">© 2026 FluxGuard</span>
+                <div className="flex items-center gap-3">
+                    <span className="font-mono text-[11px] text-subtle">Built by <span className="text-accent">Bikram Bishwokarma</span></span>
+                    <span className="text-border">·</span>
+                    <span className="font-mono text-[11px] text-subtle">© 2026 FluxGuard</span>
+                </div>
             </footer>
         </div>
     );

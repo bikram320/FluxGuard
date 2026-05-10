@@ -17,13 +17,13 @@ function ApiKeyDisplay({ apiKey }) {
 
     return (
         <div className="flex items-center gap-2 bg-bg border border-border rounded px-3 py-1.5 mt-3">
-      <span className="text-xs font-mono text-accent flex-1 truncate">
-        {visible ? apiKey : masked}
-      </span>
-            <button onClick={() => setVisible(!visible)} className="text-subtle hover:text-text text-[10px]">
+            <span className="text-xs font-mono text-accent flex-1 truncate">
+                {visible ? apiKey : masked}
+            </span>
+            <button onClick={() => setVisible(!visible)} className="text-subtle hover:text-text text-[10px] shrink-0">
                 {visible ? "hide" : "show"}
             </button>
-            <button onClick={copy} className="text-subtle hover:text-accent transition-colors">
+            <button onClick={copy} className="text-subtle hover:text-accent transition-colors shrink-0">
                 {copied ? <Check size={12} className="text-accent" /> : <Copy size={12} />}
             </button>
         </div>
@@ -51,11 +51,11 @@ function CreateAppModal({ onClose, onCreated }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 px-4 pb-4 sm:pb-0">
             <div className="bg-surface border border-border rounded-lg w-full max-w-md animate-slide-up p-6">
                 <div className="flex items-center justify-between mb-5">
                     <h2 className="font-display font-600 text-text">New Application</h2>
-                    <button onClick={onClose} className="text-subtle hover:text-text">
+                    <button onClick={onClose} className="text-subtle hover:text-text p-1">
                         <X size={16} />
                     </button>
                 </div>
@@ -92,7 +92,11 @@ function CreateAppModal({ onClose, onCreated }) {
                     )}
 
                     <div className="flex gap-3 pt-1">
-                        <button type="button" onClick={onClose} className="flex-1 border border-border text-subtle text-sm py-2 rounded hover:border-muted transition-colors">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="flex-1 border border-border text-subtle text-sm py-2 rounded hover:border-muted transition-colors"
+                        >
                             Cancel
                         </button>
                         <button
@@ -137,13 +141,15 @@ export default function AppsPage() {
                 </div>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 bg-accent text-bg font-mono text-xs font-600 px-4 py-2 rounded hover:bg-accent-dim transition-colors"
+                    className="flex items-center gap-2 bg-accent text-bg font-mono text-xs font-600 px-3 md:px-4 py-2 rounded hover:bg-accent-dim transition-colors"
                 >
-                    <Plus size={14} /> New App
+                    <Plus size={14} />
+                    <span className="hidden sm:inline">New App</span>
+                    <span className="sm:hidden">New</span>
                 </button>
             </div>
 
-            {/* Apps grid */}
+            {/* Apps list */}
             {loading ? (
                 <div className="flex items-center justify-center py-20 text-subtle text-xs">
                     <Loader size={16} className="animate-spin mr-2" /> Loading...
@@ -164,20 +170,23 @@ export default function AppsPage() {
                     {apps.map((app, i) => (
                         <div
                             key={app.id}
-                            className="bg-surface border border-border rounded-lg p-5 hover:border-accent/20 transition-all animate-slide-up"
+                            className="bg-surface border border-border rounded-lg p-4 md:p-5 hover:border-accent/20 transition-all animate-slide-up"
                             style={{ animationDelay: `${i * 60}ms` }}
                         >
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
+                            {/* Top row */}
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1 min-w-0">
                                     <h3 className="font-display font-600 text-text">{app.appName}</h3>
                                     <p className="text-subtle text-xs mt-1 leading-relaxed">{app.description}</p>
                                     <ApiKeyDisplay apiKey={app.apiKey} />
                                 </div>
-                                <div className="flex flex-col items-end gap-2 ml-4">
-                  <span className="flex items-center gap-1 text-[10px] text-subtle">
-                    <Calendar size={10} />
-                      {new Date(app.createdAt).toLocaleDateString()}
-                  </span>
+
+                                {/* Actions — stacks below on xs, beside on sm+ */}
+                                <div className="flex flex-col items-end gap-2 shrink-0">
+                                    <span className="flex items-center gap-1 text-[10px] text-subtle whitespace-nowrap">
+                                        <Calendar size={10} />
+                                        {new Date(app.createdAt).toLocaleDateString()}
+                                    </span>
                                     <Link
                                         to={`/apps/${app.id}/logs`}
                                         className="flex items-center gap-1 text-xs text-subtle hover:text-accent transition-colors border border-border hover:border-accent/30 rounded px-2 py-1"

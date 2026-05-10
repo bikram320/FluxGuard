@@ -16,12 +16,12 @@ const UA_PRESETS = [
 ];
 
 const QS_PRESETS = [
-    { label: "Clean",             value: "" },
-    { label: "SQLi — OR 1=1",    value: "id=1' OR '1'='1" },
-    { label: "SQLi — UNION",     value: "q=1 UNION SELECT username,password FROM users" },
-    { label: "XSS",              value: "search=<script>alert(1)</script>" },
-    { label: "Path traversal",   value: "file=../../etc/passwd" },
-    { label: "Command inject",   value: "cmd=ls;cat /etc/passwd" },
+    { label: "Clean",           value: "" },
+    { label: "SQLi — OR 1=1",  value: "id=1' OR '1'='1" },
+    { label: "SQLi — UNION",   value: "q=1 UNION SELECT username,password FROM users" },
+    { label: "XSS",            value: "search=<script>alert(1)</script>" },
+    { label: "Path traversal", value: "file=../../etc/passwd" },
+    { label: "Command inject", value: "cmd=ls;cat /etc/passwd" },
 ];
 
 export default function DemoPage() {
@@ -47,6 +47,14 @@ export default function DemoPage() {
         queryString:    queryStr || null,
     });
 
+    const addResult = (allowed, message) => {
+        setResults((prev) => [{
+            id: Date.now() + Math.random(),
+            allowed, message,
+            time: new Date().toLocaleTimeString(),
+        }, ...prev].slice(0, 30));
+    };
+
     const sendRequest = async (silent = false) => {
         if (!apiKey) return;
         if (!silent) setLoading(true);
@@ -58,14 +66,6 @@ export default function DemoPage() {
         } finally {
             if (!silent) setLoading(false);
         }
-    };
-
-    const addResult = (allowed, message) => {
-        setResults((prev) => [{
-            id: Date.now() + Math.random(),
-            allowed, message,
-            time: new Date().toLocaleTimeString(),
-        }, ...prev].slice(0, 30));
     };
 
     const spamRequests = async () => {
@@ -83,21 +83,28 @@ export default function DemoPage() {
     const allowed = results.filter((r) => r.allowed).length;
     const blocked = results.filter((r) => !r.allowed).length;
 
+    const isScanner = userAgent.toLowerCase().includes("sqlmap") ||
+        userAgent.toLowerCase().includes("nikto") ||
+        userAgent === "";
+
     return (
         <div>
-            <div className="mb-8">
+            <div className="mb-6 md:mb-8">
                 <h1 className="font-display text-xl font-700 text-text flex items-center gap-2">
                     <Zap size={18} className="text-accent" /> Live Demo
                 </h1>
                 <p className="text-subtle text-xs mt-1">
-                    Session IP: <span className="font-mono text-accent">{sessionIp}</span> — fixed per session so spam triggers rate-limiting.
+                    Session IP: <span className="font-mono text-accent">{sessionIp}</span>
+                    <span className="hidden sm:inline"> — fixed per session so spam triggers rate-limiting</span>
                 </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            {/* Stacks on mobile, side-by-side on md+ */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+
                 {/* Controls */}
                 <div className="space-y-4">
-                    <div className="bg-surface border border-border rounded-lg p-5">
+                    <div className="bg-surface border border-border rounded-lg p-4 md:p-5">
                         <h2 className="text-xs text-subtle uppercase tracking-wider mb-4">Request Config</h2>
                         <div className="space-y-3">
 
@@ -111,27 +118,27 @@ export default function DemoPage() {
                                 />
                             </div>
 
-                            <div>
-                                <label className="text-xs text-subtle block mb-1.5">Endpoint</label>
-                                <input
-                                    value={endpoint}
-                                    onChange={(e) => setEndpoint(e.target.value)}
-                                    className="w-full bg-bg border border-border rounded px-3 py-2 text-xs text-text font-mono placeholder-subtle focus:outline-none focus:border-accent/50 transition-colors"
-                                />
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs text-subtle block mb-1.5">Endpoint</label>
+                                    <input
+                                        value={endpoint}
+                                        onChange={(e) => setEndpoint(e.target.value)}
+                                        className="w-full bg-bg border border-border rounded px-3 py-2 text-xs text-text font-mono placeholder-subtle focus:outline-none focus:border-accent/50 transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-subtle block mb-1.5">Method</label>
+                                    <select
+                                        value={method}
+                                        onChange={(e) => setMethod(e.target.value)}
+                                        className="w-full bg-bg border border-border rounded px-3 py-2 text-xs text-text font-mono focus:outline-none focus:border-accent/50 transition-colors"
+                                    >
+                                        {["GET","POST","PUT","DELETE","PATCH"].map((m) => <option key={m}>{m}</option>)}
+                                    </select>
+                                </div>
                             </div>
 
-                            <div>
-                                <label className="text-xs text-subtle block mb-1.5">Method</label>
-                                <select
-                                    value={method}
-                                    onChange={(e) => setMethod(e.target.value)}
-                                    className="w-full bg-bg border border-border rounded px-3 py-2 text-xs text-text font-mono focus:outline-none focus:border-accent/50 transition-colors"
-                                >
-                                    {["GET","POST","PUT","DELETE","PATCH"].map((m) => <option key={m}>{m}</option>)}
-                                </select>
-                            </div>
-
-                            {/* User-Agent */}
                             <div>
                                 <label className="text-xs text-subtle block mb-1.5">
                                     User-Agent <span className="text-accent/60">(UA inspection)</span>
@@ -143,16 +150,13 @@ export default function DemoPage() {
                                 >
                                     {UA_PRESETS.map((p) => <option key={p.label} value={p.value}>{p.label}</option>)}
                                 </select>
-                                {(userAgent.toLowerCase().includes("sqlmap") ||
-                                    userAgent.toLowerCase().includes("nikto") ||
-                                    userAgent === "") && (
+                                {isScanner && (
                                     <p className="text-[10px] text-danger flex items-center gap-1">
                                         <AlertTriangle size={10} /> This UA will be blocked
                                     </p>
                                 )}
                             </div>
 
-                            {/* Query string */}
                             <div>
                                 <label className="text-xs text-subtle block mb-1.5">
                                     Query String <span className="text-accent/60">(injection detection)</span>
@@ -165,7 +169,7 @@ export default function DemoPage() {
                                 </select>
                                 {queryStr && (
                                     <p className="text-[10px] text-warning flex items-center gap-1">
-                                        <AlertTriangle size={10} /> Sending: <span className="font-mono truncate">{queryStr}</span>
+                                        <AlertTriangle size={10} /> <span className="font-mono truncate">{queryStr}</span>
                                     </p>
                                 )}
                             </div>
@@ -175,7 +179,7 @@ export default function DemoPage() {
                             <button
                                 onClick={() => sendRequest()}
                                 disabled={!apiKey || loading}
-                                className="flex-1 flex items-center justify-center gap-2 bg-accent text-bg text-xs font-600 py-2 rounded hover:bg-accent-dim transition-colors disabled:opacity-40"
+                                className="flex-1 flex items-center justify-center gap-2 bg-accent text-bg text-xs font-600 py-2.5 rounded hover:bg-accent-dim transition-colors disabled:opacity-40"
                             >
                                 {loading ? <Loader size={12} className="animate-spin" /> : <Send size={12} />}
                                 Send
@@ -183,16 +187,18 @@ export default function DemoPage() {
                             <button
                                 onClick={spamRequests}
                                 disabled={!apiKey || spamming}
-                                className="flex-1 flex items-center justify-center gap-2 border border-warning/30 text-warning text-xs py-2 rounded hover:bg-warning/10 transition-colors disabled:opacity-40"
+                                className="flex-1 flex items-center justify-center gap-2 border border-warning/30 text-warning text-xs py-2.5 rounded hover:bg-warning/10 transition-colors disabled:opacity-40"
                             >
                                 {spamming ? <Loader size={12} className="animate-spin" /> : <Zap size={12} />}
-                                Spam ×15 {spamming && `(${spamCount}/15)`}
+                                <span className="hidden sm:inline">Spam ×15 </span>
+                                <span className="sm:hidden">×15 </span>
+                                {spamming && `(${spamCount}/15)`}
                             </button>
                         </div>
                     </div>
 
                     {/* Stats */}
-                    <div className="bg-surface border border-border rounded-lg p-5">
+                    <div className="bg-surface border border-border rounded-lg p-4 md:p-5">
                         <h2 className="text-xs text-subtle uppercase tracking-wider mb-3">Session Stats</h2>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="bg-bg border border-border rounded p-3 text-center">
@@ -209,15 +215,15 @@ export default function DemoPage() {
 
                 {/* Results feed */}
                 <div className="bg-surface border border-border rounded-lg overflow-hidden flex flex-col">
-                    <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                    <div className="px-4 py-3 border-b border-border flex items-center justify-between shrink-0">
                         <span className="text-xs text-subtle uppercase tracking-wider">Response Feed</span>
                         {results.length > 0 && (
                             <button onClick={() => setResults([])} className="text-[10px] text-subtle hover:text-text">Clear</button>
                         )}
                     </div>
-                    <div className="flex-1 overflow-auto max-h-[600px]">
+                    <div className="overflow-auto max-h-64 md:max-h-[600px]">
                         {results.length === 0 ? (
-                            <div className="flex items-center justify-center h-32 text-subtle text-xs">
+                            <div className="flex items-center justify-center h-24 md:h-32 text-subtle text-xs">
                                 Send a request to see results
                             </div>
                         ) : results.map((r) => (

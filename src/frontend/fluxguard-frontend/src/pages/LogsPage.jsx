@@ -4,11 +4,11 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Loader } from "lucide-react";
 import api from "../lib/api";
 
 const methodColors = {
-    GET: "text-accent",
-    POST: "text-warning",
-    PUT: "text-blue-400",
+    GET:    "text-accent",
+    POST:   "text-warning",
+    PUT:    "text-blue-400",
     DELETE: "text-danger",
-    PATCH: "text-purple-400",
+    PATCH:  "text-purple-400",
 };
 
 export default function LogsPage() {
@@ -42,7 +42,7 @@ export default function LogsPage() {
                 </Link>
                 <div>
                     <h1 className="font-display text-xl font-700 text-text">Request Logs</h1>
-                    <p className="text-subtle text-xs mt-1">App ID: {appId}</p>
+                    <p className="text-subtle text-xs mt-1 font-mono">{appId}</p>
                 </div>
             </div>
 
@@ -56,15 +56,13 @@ export default function LogsPage() {
                 </div>
             ) : (
                 <>
-                    <div className="bg-surface border border-border rounded-lg overflow-hidden">
-                        {/* Table header */}
+                    {/* Desktop table */}
+                    <div className="hidden md:block bg-surface border border-border rounded-lg overflow-hidden">
                         <div className="grid grid-cols-4 px-4 py-2.5 border-b border-border">
                             {["IP Address", "Endpoint", "Method", "Timestamp"].map((h) => (
                                 <span key={h} className="text-[10px] text-subtle uppercase tracking-wider font-600">{h}</span>
                             ))}
                         </div>
-
-                        {/* Rows */}
                         {logs.map((log, i) => (
                             <div
                                 key={log.id}
@@ -73,12 +71,26 @@ export default function LogsPage() {
                             >
                                 <span className="text-xs text-text font-mono">{log.ip}</span>
                                 <span className="text-xs text-subtle font-mono truncate pr-4">{log.endpoint}</span>
-                                <span className={`text-xs font-mono font-600 ${methodColors[log.method] || "text-text"}`}>
-                  {log.method}
-                </span>
-                                <span className="text-xs text-subtle">
-                  {new Date(log.createdAt).toLocaleString()}
-                </span>
+                                <span className={`text-xs font-mono font-600 ${methodColors[log.method] || "text-text"}`}>{log.method}</span>
+                                <span className="text-xs text-subtle">{new Date(log.createdAt).toLocaleString()}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Mobile cards */}
+                    <div className="md:hidden space-y-2">
+                        {logs.map((log, i) => (
+                            <div
+                                key={log.id}
+                                className="bg-surface border border-border rounded-lg px-4 py-3 animate-fade-in"
+                                style={{ animationDelay: `${i * 20}ms` }}
+                            >
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs text-text font-mono">{log.ip}</span>
+                                    <span className={`text-xs font-mono font-600 ${methodColors[log.method] || "text-text"}`}>{log.method}</span>
+                                </div>
+                                <p className="text-[11px] text-subtle font-mono truncate mb-1">{log.endpoint}</p>
+                                <p className="text-[10px] text-subtle/60">{new Date(log.createdAt).toLocaleString()}</p>
                             </div>
                         ))}
                     </div>
@@ -86,9 +98,7 @@ export default function LogsPage() {
                     {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="flex items-center justify-between mt-4">
-              <span className="text-xs text-subtle">
-                Page {page + 1} of {totalPages}
-              </span>
+                            <span className="text-xs text-subtle">Page {page + 1} of {totalPages}</span>
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => fetchLogs(page - 1)}
