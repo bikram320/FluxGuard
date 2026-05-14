@@ -9,8 +9,15 @@ import LogsPage from "./pages/LogsPage";
 import BlocksPage from "./pages/BlocksPage";
 import DemoPage from "./pages/DemoPage";
 import DocsPage from "./pages/DocsPage";
+import {useEffect} from "react";
 
 export default function App() {
+
+    useEffect(() => {
+        fetch("https://fluxguard-api.onrender.com/health")
+            .catch(() => {});
+    }, []);
+
     return (
         <BrowserRouter>
             <Routes>
