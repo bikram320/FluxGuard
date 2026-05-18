@@ -10,8 +10,9 @@ export default function RegisterPage() {
     const [showConfirmPw, setShowConfirmPw] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const setToken = useAuthStore((s) => s.setToken);
     const navigate = useNavigate();
+
+    const setLoggedIn = useAuthStore((s) => s.setLoggedIn);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -22,8 +23,8 @@ export default function RegisterPage() {
         }
         setLoading(true);
         try {
-            const res = await api.post("/auth/users/register", form);
-            setToken(res.data);
+            await api.post("/auth/users/register", form);
+            setLoggedIn();
             navigate("/apps");
         } catch (err) {
             setError(err.response?.data?.message || "Registration failed");

@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { Shield, LayoutGrid, Ban, Zap, LogOut, BookOpen } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import clsx from "clsx";
+import api from "../lib/api.js";
 
 const nav = [
     { to: "/apps",   icon: LayoutGrid, label: "Applications" },
@@ -14,9 +15,13 @@ export default function Layout({ children }) {
     const logout = useAuthStore((s) => s.logout);
     const navigate = useNavigate();
 
-    const handleLogout = () => {
-        logout();
-        navigate("/login");
+    const handleLogout = async () => {
+        try {
+            await api.post("/auth/users/logout"); // clears the cookie server-side
+        } finally {
+            logout();
+            navigate("/login");
+        }
     };
 
     return (
