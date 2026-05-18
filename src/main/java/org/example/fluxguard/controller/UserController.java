@@ -1,12 +1,12 @@
 package org.example.fluxguard.controller;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.example.fluxguard.dtos.UserLoginDto;
 import org.example.fluxguard.dtos.UserRegisterDto;
 import org.example.fluxguard.service.UserService;
 import org.example.fluxguard.utils.CookieUtil;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,15 +36,16 @@ public class UserController {
         return ResponseEntity.ok("Login successful");
     }
 
-    // In UserController.java
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
-        Cookie cookie = new Cookie("jwt", "");
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+        ResponseCookie cookie = ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("None")
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
         return ResponseEntity.ok("Logged out");
     }
 }
