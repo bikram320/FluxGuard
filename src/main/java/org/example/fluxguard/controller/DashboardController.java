@@ -91,7 +91,10 @@ public class DashboardController {
 
     private String extractEmail(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
-        String token = authHeader.substring(7); // strip "Bearer "
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
         return jwtUtil.extractUsername(token);
     }
 }

@@ -18,8 +18,8 @@ export default function LoginPage() {
         setError("");
         setLoading(true);
         try {
-            await api.post("/auth/users/login", form);
-            setLoggedIn();
+            const res = await api.post("/auth/users/login", form);
+            setLoggedIn(res.data.token); // ← pass token here
             navigate("/apps");
         } catch (err) {
             setError(err.response?.data?.message || "Invalid credentials");

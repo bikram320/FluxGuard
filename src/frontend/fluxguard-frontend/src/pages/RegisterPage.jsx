@@ -23,8 +23,8 @@ export default function RegisterPage() {
         }
         setLoading(true);
         try {
-            await api.post("/auth/users/register", form);
-            setLoggedIn();
+            const res = await api.post("/auth/users/register", form);
+            setLoggedIn(res.data.token); // ← pass token here
             navigate("/apps");
         } catch (err) {
             setError(err.response?.data?.message || "Registration failed");

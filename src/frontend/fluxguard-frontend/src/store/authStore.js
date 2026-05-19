@@ -5,8 +5,9 @@ export const useAuthStore = create(
     persist(
         (set) => ({
             isLoggedIn: false,
-            setLoggedIn: () => set({ isLoggedIn: true }),
-            logout: () => set({ isLoggedIn: false }),
+            token: null,
+            setLoggedIn: (token) => set({ isLoggedIn: true, token }),
+            logout: () => set({ isLoggedIn: false, token: null }),
         }),
         { name: "fluxguard-auth" }
     )
